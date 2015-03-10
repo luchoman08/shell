@@ -6,31 +6,51 @@
 char PWD[max];
 
 int main(void) {
-    int *procesos[20];
-    char command[256];
-    char *argument[256];
-    char *argv[12];
-    int mode = 0;
-    int estatus;
-    incializaProcesos(procesos);
+    int *procesos[20];/* array el cual almacena los id de los procesos en backgraund */
+    char command[256];/* almacena el comando como unidad, sin argumento0s */
+    char *argument[256]; /* array adicional para guardar argumentos */
+    char *argv[12]; /* array que guarda los argumentos que luego seran enviados para que sean ejecutados, en la posicion 0
+                        almacenara el comando en cuestion  */
+    int mode = 0;  /* indica si el proceso a ejecutar sera ejecutado en backgraund o en foregraund
+                       *si es 0 el proceso se ejecutara en foregraund
+                       *si es 1 el proceso se ejecutara en  backgraund */
+    int estatus; /* indica si se ingreso un comando especial implementado dentro del programa
+    
+                      *si estatus es 1, indica que el comando ingresado se encuentra en /bin y puede ser ejecutado normalmente
+                      *si estatus es 2, indica que el comando ingresado es jobs, el cual lista los pid de los procesos ejecutandose en 
+                       backgraund
+                      *si el estatus es 3 indica que el proceso ejecutado es "kill", comando el cual necesita que sea almacenado el pid al que
+                       va a matar, para posteriormente borrarlo de los registros internos del foregraundrograma (el array procesos)  */
+    incializaProcesos(procesos);  /* inicializa el array procesos, pone cada una de las posiciones en 0 por conveniencia */
     while (1) {
-        getcwd(PWD, max);
-        printf("MINI-SHELL --->>> %s\n", PWD);
-        printf("Mode (one number only -- 0 fg-- 1 bg)> ");
+        getcwd(PWD, max); /* obtiene la ruta en la que se encuentra */
+        printf("MINI-SHELL --->>> %s\n", PWD); /* imprime la ruta en una linea del shell */
+        printf("Mode (one number only -- 0 fg-- 1 bg)> "); /* indica que a continuacion se ingresara el modo de ejecucion
+																*si es 0 el proceso se ejecutara en foregraund
+                                                                *si es 1 el proceso se ejecutara en  backgraund */
         fflush(stdout);
-        scanf("%d", &mode);
-        estatus = adicionarComando(argv, command, argument);
-        if (estatus == 1) {
-            if (mode == 0) {
-                ejecutarfg(argv);
-                sleep(1);
-            } else {
-                ejecutarbg(argv, procesos);
+        scanf("%d", &mode); /* se obtiene el mode */
+        estatus = adicionarComando(argv, command, argument);  /* se obtiene el status el cual puede ser 
+																   *si estatus es 1, indica que el comando ingresado se encuentra en /bin y puede ser ejecutado normalmente
+                                                                   *si estatus es 2, indica que el comando ingresado es jobs, el cual lista los pid de los procesos ejecutandose en 
+																	backgraund
+																   *si el estatus es 3 indica que el proceso ejecutado es "kill", comando el cual necesita que sea almacenado el pid al que
+																    va a matar, para posteriormente borrarlo de los registros internos del foregraundrograma (el array procesos) 
+																				*/
+        if (estatus == 1) {/* si el comando no es un comando especial abordado en el shell (como cd o jobs)*/
+            if (mode == 0) { /* si el mode es 0 el comando se ejecuta en foreground */
+                ejecutarfg(argv); /**/
+                sleep(1); /* linea para esperar la ejecucion del comando y luego mostrar la linea inicial del programa (no funciona igualmente
+							 programas que tarden mas de 1 segundo en ejecutarse)*/
+            } else { /* si mode es distinto de  0 el proceso es ejecutado en background*/
+                ejecutarbg(argv, procesos); /* se envia el array con los argumentos y el puntero del array que contiene los id de los procesos */
             }
-        } else if (estatus == 2) {
-            imprimeProcesos(procesos);
+        } else if (estatus == 2) {  
+            imprimeProcesos(procesos);/* si el estatus es 2 se imprimen los id de los procesos corriendo actualmente en background */
         }
         else if (estatus == 3) {
+			
+			/* si la entrada es el proceso kill, se ejecuta este luego se procede a eliminar el id del proceso terminado del array de procesos*/
             ejecutarfg(argv);
             sleep(1);
             int aux = atoi(argv[1]);
@@ -43,17 +63,17 @@ int main(void) {
         }
     }
 }
-
+/* este metodo se encarga de llenar el array de argumentos (argv) para su posterior ejecucion */
 int adicionarComando(char **argv, char *command, char **argument) {
-    int i;
+    int i; /* variables utilizadas en los for que se encuentran mas abajo */
     int j;
-    char *argument2[48];
+    char *argument2[48];  
     // loop until return
-    printf("Command (one word only)> ");
+    printf("Command (one word only)> "); /* se procede a pedir el argumento */
     fflush(stdout);
-    scanf("%s", command);
-    *argv++ = command;
-    if (!strcmp(command, "jobs")) {
+    scanf("%s", command); /* se asigna la linea de entrada a la variable char command */
+    *argv++ = command;  /* el array argv en la posicion en la que se encuentre apunta a command y se incrementa en uno */
+    if (!strcmp(command, "jobs")) {  /* si el comando de entrada es jobs retorna 2 para su ejecucion a parte */
         return 2;
     }
 
