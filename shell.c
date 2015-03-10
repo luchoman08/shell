@@ -4,7 +4,7 @@
 #include <sys/wait.h>
 #define max 105 /*Numero de caracteres maximo para comando las variables de ambiente*/
 char PWD[max];
-
+ASDASDASDA
 int main(void) {
     int *procesos[20];/* array el cual almacena los id de los procesos en backgraund */
     char command[256];/* almacena el comando como unidad, sin argumento0s */
